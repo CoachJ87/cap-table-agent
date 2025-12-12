@@ -494,7 +494,7 @@ const AllocationPreferences = () => {
         </div>
 
         <p className="text-xs text-gray-400 text-center mt-8">
-          Questions? Reach out to Jonathan (miller.d.jonathan@gmail.com)
+          Questions? Reach out to Jonathan on Telegram: <a href="https://t.me/CoachJ87" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-500">@CoachJ87</a>
         </p>
       </div>
     </div>
