@@ -7,6 +7,7 @@ export interface Contributor {
   token: string;
   created_at: string;
   interview_completed: boolean;
+  allocation_prefs_submitted_at?: string | null;
 }
 
 interface ContributorTableProps {

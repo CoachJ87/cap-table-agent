@@ -116,13 +116,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ contributor }) => {
   };
 
   const handleEndInterview = async () => {
+    // Verify allocation prefs were submitted before allowing interview completion
+    if (!contributor.allocation_prefs_submitted_at) {
+      alert('Please complete the allocation preferences step first.');
+      return;
+    }
+
     setIsThinking(true);
     const { error } = await supabase
       .from('contributors')
-      .update({ 
-        interview_completed: true, 
+      .update({
+        interview_completed: true,
         interview_completed_at: new Date().toISOString(),
-        evidence_text: evidenceText 
+        evidence_text: evidenceText
       })
       .eq('id', contributor.id);
 

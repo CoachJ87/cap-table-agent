@@ -11,7 +11,7 @@ function App() {
       <Routes>
         <Route path="/contribute/:token" element={<AllocationPreferences />} />
         <Route path="/interview/:token" element={<Interview />} />
-        <Route path="/character/:token" element={<Navigate to="/contribute/:token" replace />} />
+        <Route path="/character/:token" element={<CharacterAccess />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>

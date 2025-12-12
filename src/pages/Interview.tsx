@@ -47,7 +47,7 @@ const Interview: React.FC = () => {
     };
 
     fetchContributor();
-  }, [token]);
+  }, [token, navigate]);
 
   if (loading) {
     return (
