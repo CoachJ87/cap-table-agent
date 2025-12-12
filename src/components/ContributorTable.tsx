@@ -64,7 +64,16 @@ const ContributorTable: React.FC<ContributorTableProps> = ({ contributors, onVie
                   <button
                     onClick={async (e) => {
                       e.stopPropagation();
-                      if (window.confirm(`Delete ${contributor.name} and all their messages?`)) {
+                      const confirmed = window.confirm(
+                        `Are you sure you want to delete ${contributor.name}?\n\n` +
+                        `This will permanently remove:\n` +
+                        `• All chat messages\n` +
+                        `• Allocation preferences\n` +
+                        `• Interview responses\n` +
+                        `• Supporting documentation\n\n` +
+                        `This action cannot be undone.`
+                      );
+                      if (confirmed) {
                         await onDelete(contributor.id, contributor.name);
                       }
                     }}

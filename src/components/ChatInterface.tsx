@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import ChatMessage from './ChatMessage';
 import { supabase } from '../lib/supabase';
 import type { Contributor } from './ContributorTable';
@@ -122,6 +123,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ contributor }) => {
       return;
     }
 
+    // Confirm submission since it's final
+    const confirmed = window.confirm(
+      'Are you sure you want to submit your interview?\n\n' +
+      'Once submitted, you won\'t be able to make any further changes to your responses or allocation preferences.\n\n' +
+      'Click OK to submit, or Cancel to continue editing.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     setIsThinking(true);
     const { error } = await supabase
       .from('contributors')
@@ -154,6 +166,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ contributor }) => {
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div className="bg-blue-600 h-2 rounded-full" style={{ width: '100%' }}></div>
             </div>
+            <Link
+              to={`/contribute/${contributor.token}`}
+              className="text-sm text-blue-600 hover:text-blue-800 mt-2 inline-block"
+            >
+              ← Back to Allocation Preferences
+            </Link>
           </div>
           {loading ? (
             <div className="text-center text-gray-500">Loading conversation...</div>

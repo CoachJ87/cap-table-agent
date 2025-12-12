@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const BUCKET_DEFINITIONS = [
@@ -94,13 +94,7 @@ const AllocationPreferences = () => {
         return;
       }
 
-      // If already submitted allocation prefs, go to interview
-      if (data.allocation_prefs_submitted_at) {
-        navigate(`/interview/${token}`);
-        return;
-      }
-
-      // Load any saved draft data
+      // Load any saved draft data (works for both new and returning users)
       if (data.cap_table_expertise) setExpertise(data.cap_table_expertise);
       if (data.cap_table_expertise_description) setExpertiseDescription(data.cap_table_expertise_description);
       if (data.bucket_deferred) setBucketDeferred(data.bucket_deferred);
@@ -220,6 +214,14 @@ const AllocationPreferences = () => {
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div className="bg-blue-600 h-2 rounded-full" style={{ width: '50%' }}></div>
           </div>
+          {contributor?.allocation_prefs_submitted_at && (
+            <Link
+              to={`/interview/${token}`}
+              className="text-sm text-blue-600 hover:text-blue-800 mt-2 inline-block"
+            >
+              → Back to Interview
+            </Link>
+          )}
         </div>
 
         <h1 className="text-2xl font-bold mb-2">Allocation Preferences</h1>
@@ -342,14 +344,16 @@ const AllocationPreferences = () => {
             <textarea
               value={bucketRationale}
               onChange={(e) => setBucketRationale(e.target.value)}
-              placeholder="Any reasoning behind your distribution choices..."
+              placeholder={bucketDeferred
+                ? "Why are you deferring? Who do you trust to make this decision and why? Your perspective still matters!"
+                : "What's driving your allocation choices? Any experience or reasoning that shaped your thinking? This helps us understand and weigh your input."
+              }
               className="w-full border rounded-md p-2 text-sm"
-              rows={2}
-              disabled={bucketDeferred}
+              rows={3}
             />
-            <p className="text-xs text-gray-500 mt-1">Explaining your reasoning helps the algorithm weigh your input more thoughtfully.</p>
+            <p className="text-xs text-gray-500 mt-1">Your reasoning is valuable whether you're voting or deferring — it helps leadership understand your perspective.</p>
           </div>
-          
+
           <p className="text-xs text-gray-400 mt-3">
             Note: These are industry typical ranges. Mother's needs may differ.
           </p>
@@ -464,12 +468,14 @@ const AllocationPreferences = () => {
             <textarea
               value={lockupRationale}
               onChange={(e) => setLockupRationale(e.target.value)}
-              placeholder="Any reasoning behind your vesting choices..."
+              placeholder={lockupDeferred
+                ? "Why are you deferring? Who do you trust to make this decision and why? Your perspective still matters!"
+                : "What's behind your vesting choices? Any thoughts on balancing short-term liquidity vs. long-term alignment? This helps us understand your reasoning."
+              }
               className="w-full border rounded-md p-2 text-sm"
-              rows={2}
-              disabled={lockupDeferred}
+              rows={3}
             />
-            <p className="text-xs text-gray-500 mt-1">Explaining your reasoning helps the algorithm weigh your input more thoughtfully.</p>
+            <p className="text-xs text-gray-500 mt-1">Your reasoning is valuable whether you're voting or deferring — it helps leadership understand your perspective.</p>
           </div>
         </div>
 
