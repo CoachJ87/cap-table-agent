@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
@@ -6,6 +6,28 @@ const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    // Debug: Check if user is already authenticated when component loads
+    const checkExistingAuth = async () => {
+      console.log('🔍 AdminLogin - Component mounted, checking existing auth...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (session) {
+        console.log('🔍 AdminLogin - Found existing session:', session.user.email);
+        console.log('🔍 AdminLogin - Auto-redirecting to dashboard');
+        navigate('/admin/dashboard');
+      } else {
+        console.log('🔍 AdminLogin - No existing session, showing login form');
+      }
+      
+      if (error) {
+        console.error('🔍 AdminLogin - Error checking session:', error);
+      }
+    };
+    
+    checkExistingAuth();
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

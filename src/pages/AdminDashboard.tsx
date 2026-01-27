@@ -5,12 +5,36 @@ import AddContributorModal from '../components/AddContributorModal';
 import TranscriptView from '../components/TranscriptView';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedContributor, setSelectedContributor] = useState<Contributor | null>(null);
+
+  useEffect(() => {
+    // Debug: Check authentication when dashboard loads
+    const checkAuth = async () => {
+      console.log('🔍 AdminDashboard - Component mounted, checking auth...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('🔍 AdminDashboard - No session found, redirecting to login');
+        navigate('/admin');
+        return;
+      }
+      
+      console.log('🔍 AdminDashboard - Authenticated as:', session.user.email);
+      if (error) {
+        console.error('🔍 AdminDashboard - Auth error:', error);
+        navigate('/admin');
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
 
   const fetchContributors = async () => {
     setLoading(true);
