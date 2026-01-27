@@ -4,6 +4,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AllocationPreferences from './pages/AllocationPreferences';
 import CharacterAccess from './pages/CharacterAccess';
+import AlgorithmReview from './pages/AlgorithmReview';
 import { supabase } from './lib/supabase';
 import { useEffect } from 'react';
 
@@ -34,6 +35,7 @@ function App() {
         <Route path="/contribute/:token" element={<AllocationPreferences />} />
         <Route path="/interview/:token" element={<Interview />} />
         <Route path="/character/:token" element={<CharacterAccess />} />
+        <Route path="/review/:token" element={<AlgorithmReview />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/" element={<div className="p-8 text-center">

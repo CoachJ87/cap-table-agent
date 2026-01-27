@@ -5,16 +5,20 @@ interface AddContributorModalProps {
   isOpen: boolean;
   onClose: () => void;
   onContributorAdded: () => void;
+  sessionId?: string | null;
 }
 
-const AddContributorModal: React.FC<AddContributorModalProps> = ({ isOpen, onClose, onContributorAdded }) => {
+const AddContributorModal: React.FC<AddContributorModalProps> = ({ isOpen, onClose, onContributorAdded, sessionId }) => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAddContributor = async () => {
     if (!name.trim()) return;
     setLoading(true);
-    const { error } = await supabase.from('contributors').insert({ name });
+    const { error } = await supabase.from('contributors').insert({
+      name,
+      session_id: sessionId || null,
+    });
     if (error) {
       console.error('Error adding contributor:', error);
       alert('Failed to add contributor.');

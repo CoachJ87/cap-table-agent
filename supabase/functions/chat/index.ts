@@ -8,7 +8,13 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const INTERVIEWER_SYSTEM_PROMPT = `You are a friendly interviewer for the Mother Collective, gathering information about contributors' experiences and contributions to help with fair token allocation.
+// Build the interviewer system prompt dynamically based on session participants
+function buildInterviewerPrompt(participantNames: string[]): string {
+  const participantSection = participantNames.length > 0
+    ? `- After they mention a few people, ask: "Here are some others who contributed: ${participantNames.join(', ')}. Anyone else you have observations about?"`
+    : `- After they mention a few people, ask: "Are there any other contributors you'd like to share observations about?"`;
+
+  return `You are a friendly interviewer for the Mother Collective, gathering information about contributors' experiences and contributions to help with fair token allocation.
 
 Your interview has three phases. Be conversational, not robotic. Ask follow-up questions when answers are vague. Don't ask all questions at once — have a natural conversation.
 
@@ -23,7 +29,7 @@ Your interview has three phases. Be conversational, not robotic. Ask follow-up q
 - Who did you work with most closely? What did they contribute?
 - Who do you think moved the needle the most (besides yourself)?
 - Is there anyone whose contribution might be overlooked?
-- After they mention a few people, ask: "Here are some others who contributed to Mother: James Young, Matt Wright, Disruption Joe, Alex Loomley, Manu, Zina, Punkar, Kush, Francesco, Dan, Sumit, Gita, Andrew. Anyone else you have observations about?"
+${participantSection}
 - "In your view, who would you consider part of the core leadership team—the people steering the ship?"
 - "Who would you consider key contributors—people who shipped important work but aren't necessarily in leadership?"
 - "Is there anyone with a founding or leadership title who you feel is more advisory than hands-on?"
@@ -44,6 +50,7 @@ Your interview has three phases. Be conversational, not robotic. Ask follow-up q
 - Keep the tone warm and appreciative of their time
 
 When they indicate they're done, summarize the key points you heard and ask if anything needs correction. Then let them know they can click "Submit Interview" when ready.`;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -58,6 +65,28 @@ serve(async (req) => {
       { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
     );
 
+    // Fetch the current contributor to get their session_id
+    const { data: contributor } = await supabaseClient
+      .from('contributors')
+      .select('session_id')
+      .eq('id', contributorId)
+      .single();
+
+    // Fetch other participants in the same session (if any)
+    let participantNames: string[] = [];
+    if (contributor?.session_id) {
+      const { data: sessionContributors } = await supabaseClient
+        .from('contributors')
+        .select('name')
+        .eq('session_id', contributor.session_id)
+        .neq('id', contributorId);
+
+      participantNames = sessionContributors?.map((c: { name: string }) => c.name) || [];
+    }
+
+    // Build the dynamic system prompt
+    const systemPrompt = buildInterviewerPrompt(participantNames);
+
     const { data: messages, error: messagesError } = await supabaseClient
       .from('messages')
       .select('role, content')
@@ -66,10 +95,10 @@ serve(async (req) => {
 
     if (messagesError) throw messagesError;
 
-    await supabaseClient.from('messages').insert({ 
-      contributor_id: contributorId, 
-      role: 'user', 
-      content: message 
+    await supabaseClient.from('messages').insert({
+      contributor_id: contributorId,
+      role: 'user',
+      content: message
     });
 
     const anthropic = new Anthropic({
@@ -79,16 +108,16 @@ serve(async (req) => {
     const claudeResponse = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
-      system: INTERVIEWER_SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [...messages, { role: 'user', content: message }],
     });
 
     const assistantMessage = claudeResponse.content[0].text;
 
-    await supabaseClient.from('messages').insert({ 
-      contributor_id: contributorId, 
-      role: 'assistant', 
-      content: assistantMessage 
+    await supabaseClient.from('messages').insert({
+      contributor_id: contributorId,
+      role: 'assistant',
+      content: assistantMessage
     });
 
     return new Response(JSON.stringify({ message: assistantMessage }), {
@@ -97,8 +126,8 @@ serve(async (req) => {
     });
   } catch (error) {
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'An unknown error occurred' 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'An unknown error occurred'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,

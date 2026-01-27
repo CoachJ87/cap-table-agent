@@ -8,6 +8,9 @@ export interface Contributor {
   created_at: string;
   interview_completed: boolean;
   allocation_prefs_submitted_at?: string | null;
+  session_id?: string | null;
+  algorithm_acknowledged_at?: string | null;
+  algorithm_feedback?: string | null;
 }
 
 interface ContributorTableProps {
@@ -19,12 +22,27 @@ interface ContributorTableProps {
 const ContributorTable: React.FC<ContributorTableProps> = ({ contributors, onViewTranscript, onDelete }) => {
 
   const copyToClipboard = (token: string) => {
-    const link = `${window.location.origin}/contribute/${token}`;
+    // Use /character/ path which is the smart router that directs to the right step
+    const link = `${window.location.origin}/character/${token}`;
     navigator.clipboard.writeText(link).then(() => {
       alert('Link copied to clipboard!');
     }).catch(err => {
       console.error('Failed to copy link: ', err);
     });
+  };
+
+  // Determine contributor status based on progress
+  const getStatus = (contributor: Contributor): { label: string; color: string } => {
+    if (contributor.interview_completed) {
+      return { label: 'Completed', color: 'bg-green-100 text-green-800' };
+    }
+    if (contributor.allocation_prefs_submitted_at) {
+      return { label: 'In Interview', color: 'bg-blue-100 text-blue-800' };
+    }
+    if (contributor.algorithm_acknowledged_at) {
+      return { label: 'Filling Prefs', color: 'bg-purple-100 text-purple-800' };
+    }
+    return { label: 'Not Started', color: 'bg-gray-100 text-gray-800' };
   };
 
   return (
@@ -46,9 +64,14 @@ const ContributorTable: React.FC<ContributorTableProps> = ({ contributors, onVie
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{contributor.name}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(contributor.created_at).toLocaleDateString()}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${contributor.interview_completed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                  {contributor.interview_completed ? 'Completed' : 'Pending'}
-                </span>
+                {(() => {
+                  const status = getStatus(contributor);
+                  return (
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
+                      {status.label}
+                    </span>
+                  );
+                })()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex space-x-4">
